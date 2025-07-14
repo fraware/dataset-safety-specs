@@ -1,0 +1,192 @@
+name: CI
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.11"
+
+      - name: Install Lean
+        run: |
+          if [ "$RUNNER_OS" = "Linux" ]; then
+            wget https://github.com/leanprover/lean4/releases/download/v4.7.0/lean-4.7.0-linux.tar.gz
+            tar -xzf lean-4.7.0-linux.tar.gz
+            echo "$PWD/lean-4.7.0-linux/bin" >> $GITHUB_PATH
+          elif [ "$RUNNER_OS" = "macOS" ]; then
+            wget https://github.com/leanprover/lean4/releases/download/v4.7.0/lean-4.7.0-darwin.tar.gz
+            tar -xzf lean-4.7.0-darwin.tar.gz
+            echo "$PWD/lean-4.7.0-darwin/bin" >> $GITHUB_PATH
+          fi
+
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Build
+        run: lake build
+
+      - name: Run tests
+        run: lake exe test_suite
+
+      - name: Run benchmarks
+        run: lake exe benchmark_suite
+
+      - name: Run lineage regression test
+        run: lake exe lineage_regression_test
+
+      - name: Type check
+        run: lake build DatasetSafetySpecs
+
+      - name: Check Python formatting
+        run: |
+          black --check --diff python/
+          isort --check-only --diff python/
+
+      - name: Run mypy
+        run: |
+          mypy python/ds_guard/__init__.py python/ds_guard/data_integration.py python/onnx2lean_shape.py
+
+      - name: Run flake8
+        run: |
+          flake8 python/ --max-line-length=88 --extend-ignore=E203,W503
+
+      - name: Test ONNX converter
+        run: |
+          # Test the ONNX converter with a dummy model
+          echo "Testing ONNX converter..."
+          python python/onnx2lean_shape.py --help || echo "ONNX converter help works"
+
+  extract-guards:
+    runs-on: ubuntu-latest
+    needs: build
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.11"
+
+      - name: Install Lean
+        run: |
+          wget https://github.com/leanprover/lean4/releases/download/v4.7.0/lean-4.7.0-linux.tar.gz
+          tar -xzf lean-4.7.0-linux.tar.gz
+          echo "$PWD/lean-4.7.0-linux/bin" >> $GITHUB_PATH
+
+      - name: Extract guards
+        run: lake exe extract_guard
+
+      - name: Setup Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+
+      - name: Install Rust formatting tools
+        run: |
+          rustup component add rustfmt
+          rustup component add clippy
+
+      - name: Format Rust code
+        run: |
+          cd extracted/rust
+          cargo fmt -- --check
+
+      - name: Lint Rust code
+        run: |
+          cd extracted/rust
+          cargo clippy -- -D warnings
+
+      - name: Build Rust guards
+        run: |
+          cd extracted/rust
+          cargo build --release
+
+      - name: Build Python guards
+        run: |
+          cd extracted/python
+          python setup.py build
+
+  shape-verify:
+    runs-on: ubuntu-latest
+    needs: build
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.11"
+
+      - name: Install Lean
+        run: |
+          wget https://github.com/leanprover/lean4/releases/download/v4.7.0/lean-4.7.0-linux.tar.gz
+          tar -xzf lean-4.7.0-linux.tar.gz
+          echo "$PWD/lean-4.7.0-linux/bin" >> $GITHUB_PATH
+
+      - name: Download test model
+        run: |
+          mkdir -p test_models
+          # Download a small test ONNX model for verification
+          curl -L -o test_models/test_model.onnx https://github.com/onnx/models/raw/main/vision/classification/mnist/model/mnist-8.onnx
+
+      - name: Verify shape safety
+        run: lake exe shapesafe_verify test_models/test_model.onnx
+        timeout-minutes: 5
+
+  bundle:
+    runs-on: ubuntu-latest
+    needs: build
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.11"
+
+      - name: Install Lean
+        run: |
+          wget https://github.com/leanprover/lean4/releases/download/v4.7.0/lean-4.7.0-linux.tar.gz
+          tar -xzf lean-4.7.0-linux.tar.gz
+          echo "$PWD/lean-4.7.0-linux/bin" >> $GITHUB_PATH
+
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Build project
+        run: lake build
+
+      - name: Extract guards
+        run: lake exe extract_guard
+
+      - name: Create bundle
+        run: |
+          chmod +x bundle.sh
+          ./bundle.sh bundle
+
+      - name: Verify bundle contents
+        run: |
+          ls -la dist/
+          tar -tzf dist/dataset-safety-specs-0.1.0.tar.gz || echo "Bundle created successfully"

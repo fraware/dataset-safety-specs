@@ -1,0 +1,92 @@
+name: Dataset Policy Issue
+description: Report issues related to data policy filters, compliance, or PHI/GDPR/COPPA handling
+title: "[POLICY] "
+labels: ["policy", "compliance"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to report a dataset policy issue!
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: A clear description of the policy issue
+      placeholder: Describe the policy issue you're experiencing...
+    validations:
+      required: true
+
+  - type: dropdown
+    id: policy_type
+    attributes:
+      label: Policy Type
+      description: What type of policy issue is this?
+      options:
+        - HIPAA PHI
+        - COPPA (Children's Online Privacy)
+        - GDPR (General Data Protection Regulation)
+        - Custom Policy
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Steps to Reproduce
+      description: How can we reproduce this policy issue?
+      placeholder: |
+        1. Create dataset with...
+        2. Apply policy filter...
+        3. See error...
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected Behavior
+      description: What should happen?
+      placeholder: The policy filter should detect and block...
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual Behavior
+      description: What actually happened?
+      placeholder: The policy filter failed to detect...
+
+  - type: textarea
+    id: sample_data
+    attributes:
+      label: Sample Data (Optional)
+      description: Provide sample data that triggers the issue (anonymized)
+      placeholder: |
+        ```json
+        {
+          "phi": ["SSN: ***-**-****"],
+          "age": 25,
+          "gdpr_special": []
+        }
+        ```
+
+  - type: dropdown
+    id: severity
+    attributes:
+      label: Severity
+      description: How severe is this policy issue?
+      options:
+        - Critical (Data breach risk)
+        - High (Compliance violation)
+        - Medium (Policy gap)
+        - Low (Minor issue)
+    validations:
+      required: true
+
+  - type: textarea
+    id: additional
+    attributes:
+      label: Additional Context
+      description: Any other context about the issue
+      placeholder: Environment details, related issues, etc. 

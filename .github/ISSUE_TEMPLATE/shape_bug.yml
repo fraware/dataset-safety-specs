@@ -1,0 +1,111 @@
+name: Shape Safety Bug
+description: Report issues related to shape safety verification, ONNX parsing, or tensor shape consistency
+title: "[SHAPE] "
+labels: ["shape", "onnx", "verification"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to report a shape safety issue!
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: A clear description of the shape safety issue
+      placeholder: Describe the shape safety issue you're experiencing...
+    validations:
+      required: true
+
+  - type: dropdown
+    id: model_type
+    attributes:
+      label: Model Type
+      description: What type of model is this?
+      options:
+        - ONNX Model
+        - PyTorch Model
+        - TensorFlow Model
+        - Custom Model
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: model_info
+    attributes:
+      label: Model Information
+      description: Provide details about the model (architecture, size, etc.)
+      placeholder: Model: GPT-2 (124M parameters), Framework: PyTorch -> ONNX, Input shape: [batch_size, sequence_length]
+
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Steps to Reproduce
+      description: How can we reproduce this shape safety issue?
+      placeholder: 1. Load model from... 2. Run shape verification... 3. See error...
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected Behavior
+      description: What should happen during shape verification?
+      placeholder: The shape verifier should detect consistent tensor shapes...
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual Behavior
+      description: What actually happened during shape verification?
+      placeholder: The shape verifier failed with error...
+
+  - type: textarea
+    id: error_message
+    attributes:
+      label: Error Message
+      description: Copy the full error message if any
+      placeholder: Error: Shape mismatch at layer 5, Expected: [1, 512, 768], Actual: [1, 512, 256]
+
+  - type: dropdown
+    id: verification_step
+    attributes:
+      label: Verification Step
+      description: At which step did the issue occur?
+      options:
+        - ONNX Parsing
+        - Shape Inference
+        - Lean Conversion
+        - Proof Generation
+        - End-to-End Verification
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: model_file
+    attributes:
+      label: Model File (Optional)
+      description: If possible, provide a link to the model file or describe how to obtain it
+      placeholder: Model available at: https://huggingface.co/gpt2
+
+  - type: dropdown
+    id: severity
+    attributes:
+      label: Severity
+      description: How severe is this shape safety issue?
+      options:
+        - Critical (Model crashes)
+        - High (Shape inconsistency)
+        - Medium (Verification failure)
+        - Low (Minor issue)
+    validations:
+      required: true
+
+  - type: textarea
+    id: additional
+    attributes:
+      label: Additional Context
+      description: Any other context about the issue
+      placeholder: Environment details, related issues, etc. 
