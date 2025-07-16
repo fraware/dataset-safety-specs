@@ -1,0 +1,39 @@
+name: Guards CI
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'extracted/**'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'extracted/**'
+
+jobs:
+  test-rust:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+      - name: Test Rust guards
+        run: |
+          cd extracted/rust
+          cargo test
+
+  test-python:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+      - name: Test Python guards
+        run: |
+          cd extracted/python
+          pip install -e .
+          python -m pytest tests/

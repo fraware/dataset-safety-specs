@@ -162,6 +162,59 @@ publish_to_crates() {
     echo "Would upload Rust crate to crates.io"
 }
 
+# Function to create SentinelOps compliance bundle
+create_sentinelops_bundle() {
+    echo "Creating SentinelOps compliance bundle..."
+    
+    # Check if Python is available
+    if ! command -v python >/dev/null 2>&1; then
+        echo -e "${YELLOW}Warning: Python not found, skipping SentinelOps bundle${NC}"
+        return 0
+    fi
+    
+    # Create test dataset and compliance bundle
+    python3 -c "
+import sys
+import os
+sys.path.insert(0, 'python')
+
+try:
+    from sentinelops_bundle import create_sentinelops_bundle
+    import pandas as pd
+    import tempfile
+    
+    # Create test dataset
+    df = pd.DataFrame({'test': [1, 2, 3]})
+    with tempfile.NamedTemporaryFile(suffix='.parquet', delete=False) as tmp:
+        df.to_parquet(tmp.name)
+        tmp_path = tmp.name
+    
+    try:
+        success = create_sentinelops_bundle(
+            dataset_path=tmp_path,
+            dataset_name='test_dataset',
+            output_path='$BUNDLE_DIR/sentinelops_compliance_bundle.zip',
+            compliance_level='strict'
+        )
+        if success:
+            print('✓ SentinelOps compliance bundle created')
+        else:
+            print('✗ Failed to create SentinelOps compliance bundle')
+    finally:
+        os.unlink(tmp_path)
+except ImportError as e:
+    print(f'Warning: Could not import sentinelops_bundle: {e}')
+except Exception as e:
+    print(f'Error creating SentinelOps bundle: {e}')
+"
+    
+    if [ -f "$BUNDLE_DIR/sentinelops_compliance_bundle.zip" ]; then
+        echo -e "${GREEN}✓ SentinelOps compliance bundle created${NC}"
+    else
+        echo -e "${YELLOW}Warning: SentinelOps compliance bundle not created${NC}"
+    fi
+}
+
 # Main execution
 main() {
     local action="${1:-bundle}"
@@ -174,6 +227,7 @@ main() {
             create_lean_bundle
             create_python_wheel
             create_rust_crate
+            create_sentinelops_bundle
             create_complete_bundle
             echo -e "${GREEN}✓ Bundle complete!${NC}"
             ;;

@@ -137,6 +137,89 @@ See `examples/mask_phi.ipynb` for a complete demo of PHI detection and masking.
 
 See `examples/verify_shapes_gpt2.ipynb` for GPT-2 (124M) shape verification.
 
+## New Components (2024)
+
+### Regression Testing Suite
+
+Comprehensive regression tests for all deliverables:
+
+```bash
+# Run regression tests
+python python/regression_tests.py
+
+# Tests include:
+# - 10k-row dataset processing
+# - GPT-2 shape proof performance (≤45s)
+# - ETL throughput profiling
+# - Compliance validation
+# - SentinelOps schema compliance
+```
+
+### Runtime Safety Kernel
+
+Production-ready safety kernel for ML pipeline integration:
+
+```python
+from python.runtime_safety_kernel import create_safety_kernel, RuntimeConfig
+
+# Create safety kernel
+config = RuntimeConfig(compliance_level="strict")
+kernel = create_safety_kernel(config)
+
+# Register model assets
+kernel.register_model_asset(model_asset)
+
+# Check data safety
+safety_result = kernel.check_data_safety(data)
+```
+
+### SentinelOps Compliance Bundle
+
+Generate compliance bundles matching SentinelOps schema:
+
+```python
+from python.sentinelops_bundle import create_sentinelops_bundle
+
+# Create compliance bundle
+success = create_sentinelops_bundle(
+    dataset_path="dataset.parquet",
+    dataset_name="my_dataset",
+    output_path="compliance_bundle.zip",
+    compliance_level="strict"
+)
+```
+
+### ONNX Node Name Extractor
+
+Robust extraction of ONNX node names with fallback strategies:
+
+```python
+from python.onnx_node_extractor import extract_onnx_node_names
+
+# Extract node names
+result = extract_onnx_node_names("model.onnx", "node_names_report.json")
+```
+
+### Lion Optimizer Proof Gating
+
+CI workflow for experimental Lion optimizer proofs:
+
+```bash
+# CI automatically detects experimental proofs
+# and gates testing appropriately
+# See .github/workflows/lion_proof_gating.yml
+```
+
+### Hard Induction Sub-lemmas
+
+Complex mathematical proofs for optimizer stability:
+
+```lean
+-- See src/DatasetSafetySpecs/OptimizerInduction.lean
+-- Contains hard induction sub-lemmas for Lion optimizer
+-- with proof status tracking and CI gating
+```
+
 ## Documentation
 
 - **API Reference**: See `docs/index.md` for complete API documentation
@@ -156,9 +239,13 @@ lake exe lean --run src/format.lean
 lake build DatasetSafetySpecs
 
 # Run all tests
+python python/run_all_tests.py
+
+# Run specific test suites
 lake exe test_suite
 lake exe benchmark_suite
 lake exe lineage_regression_test
+python python/regression_tests.py
 ```
 
 ## Packaging

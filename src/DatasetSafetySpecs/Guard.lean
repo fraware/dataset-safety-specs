@@ -10,8 +10,6 @@ import Mathlib.Data.String.Basic
 
 namespace Guard
 
-namespace Guard
-
 /-- Guard predicate type -/
 structure GuardPredicate where
   name : String

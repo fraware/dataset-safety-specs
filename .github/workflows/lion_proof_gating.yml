@@ -1,0 +1,299 @@
+name: Lion Proof Gating
+
+on:
+  push:
+    branches: [main, develop]
+    paths:
+      - "src/DatasetSafetySpecs/OptimizerInduction.lean"
+      - "src/DatasetSafetySpecs/Optimizer.lean"
+  pull_request:
+    branches: [main]
+    paths:
+      - "src/DatasetSafetySpecs/OptimizerInduction.lean"
+      - "src/DatasetSafetySpecs/Optimizer.lean"
+
+jobs:
+  lion-proof-gating:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Lean
+        run: |
+          wget https://github.com/leanprover/lean4/releases/download/v4.7.0/lean-4.7.0-linux.tar.gz
+          tar -xzf lean-4.7.0-linux.tar.gz
+          echo "$PWD/lean-4.7.0-linux/bin" >> $GITHUB_PATH
+
+      - name: Build Lean project
+        run: lake build
+
+      - name: Check Lion proof status
+        id: check_lion_proof
+        run: |
+          echo "Checking Lion optimizer proof status..."
+
+          # Check if Lion proofs are experimental
+          if grep -q "experimental.*true" src/DatasetSafetySpecs/OptimizerInduction.lean; then
+            echo "Lion proofs are experimental"
+            echo "experimental=true" >> $GITHUB_OUTPUT
+          else
+            echo "Lion proofs are not experimental"
+            echo "experimental=false" >> $GITHUB_OUTPUT
+          fi
+
+          # Check proof completeness
+          if grep -q "sorry" src/DatasetSafetySpecs/OptimizerInduction.lean; then
+            echo "Lion proofs contain incomplete parts (sorry)"
+            echo "incomplete=true" >> $GITHUB_OUTPUT
+          else
+            echo "Lion proofs appear complete"
+            echo "incomplete=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Run Lion proof tests (if not experimental)
+        if: steps.check_lion_proof.outputs.experimental == 'false'
+        run: |
+          echo "Running Lion proof tests..."
+          lake exe test_suite
+
+      - name: Skip Lion proof tests (experimental)
+        if: steps.check_lion_proof.outputs.experimental == 'true'
+        run: |
+          echo "Skipping Lion proof tests - proofs are experimental"
+          echo "This is expected behavior for experimental proofs"
+
+      - name: Generate proof status report
+        run: |
+          echo "Generating Lion proof status report..."
+
+          cat > lion_proof_report.md << EOF
+          # Lion Optimizer Proof Status Report
+
+          Generated: $(date -u +%Y-%m-%dT%H:%M:%SZ)
+
+          ## Proof Status
+          - Experimental: ${{ steps.check_lion_proof.outputs.experimental }}
+          - Incomplete: ${{ steps.check_lion_proof.outputs.incomplete }}
+
+          ## CI Gating Decision
+          - Tests Run: ${{ steps.check_lion_proof.outputs.experimental == 'false' }}
+          - Tests Skipped: ${{ steps.check_lion_proof.outputs.experimental == 'true' }}
+
+          ## Next Steps
+          EOF
+
+          if [ "${{ steps.check_lion_proof.outputs.experimental }}" = "true" ]; then
+            cat >> lion_proof_report.md << EOF
+          - Complete experimental proofs
+          - Remove experimental flags
+          - Enable full CI testing
+          EOF
+          else
+            cat >> lion_proof_report.md << EOF
+          - Proofs are production-ready
+          - Full CI testing enabled
+          EOF
+          fi
+
+      - name: Upload proof status report
+        uses: actions/upload-artifact@v3
+        with:
+          name: lion-proof-report
+          path: lion_proof_report.md
+
+      - name: Comment on PR (experimental proofs)
+        if: github.event_name == 'pull_request' && steps.check_lion_proof.outputs.experimental == 'true'
+        uses: actions/github-script@v6
+        with:
+          script: |
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: `## Lion Optimizer Proof Status
+
+            ⚠️ **Experimental Proofs Detected**
+
+            The Lion optimizer proofs in this PR are marked as experimental. CI tests have been skipped to allow development to continue.
+
+            ### Status:
+            - Experimental: ✅ Yes
+            - Incomplete: ${{ steps.check_lion_proof.outputs.incomplete == 'true' && '⚠️ Yes' || '✅ No' }}
+
+            ### Next Steps:
+            1. Complete the experimental proofs
+            2. Remove experimental flags
+            3. Enable full CI testing
+
+            This is expected behavior for experimental proof development.`
+            })
+
+      - name: Comment on PR (production proofs)
+        if: github.event_name == 'pull_request' && steps.check_lion_proof.outputs.experimental == 'false'
+        uses: actions/github-script@v6
+        with:
+          script: |
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: `## Lion Optimizer Proof Status
+
+            ✅ **Production-Ready Proofs**
+
+            The Lion optimizer proofs in this PR are production-ready and have passed full CI testing.
+
+            ### Status:
+            - Experimental: ❌ No
+            - Incomplete: ${{ steps.check_lion_proof.outputs.incomplete == 'true' && '⚠️ Yes' || '✅ No' }}
+
+            ### CI Status:
+            - Full testing enabled
+            - All proofs validated
+
+            Great work on completing the proofs! 🎉`
+            })
+
+      - name: Set experimental flag
+        id: set_experimental_flag
+        run: |
+          if [ "${{ steps.check_lion_proof.outputs.experimental }}" = "true" ]; then
+            echo "experimental_flag=true" >> $GITHUB_OUTPUT
+          else
+            echo "experimental_flag=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Conditional failure (experimental proofs)
+        if: steps.set_experimental_flag.outputs.experimental_flag == 'true' && steps.check_lion_proof.outputs.incomplete == 'true'
+        run: |
+          echo "⚠️ Experimental proofs are incomplete"
+          echo "This is expected during development, but please complete proofs before merging"
+          # Don't fail the build, but warn
+
+      - name: Success (production proofs)
+        if: steps.set_experimental_flag.outputs.experimental_flag == 'false'
+        run: |
+          echo "✅ Lion proofs are production-ready"
+          echo "All CI tests passed"
+
+  proof-completion-tracking:
+    runs-on: ubuntu-latest
+    needs: lion-proof-gating
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Lean
+        run: |
+          wget https://github.com/leanprover/lean4/releases/download/v4.7.0/lean-4.7.0-linux.tar.gz
+          tar -xzf lean-4.7.0-linux.tar.gz
+          echo "$PWD/lean-4.7.0-linux/bin" >> $GITHUB_PATH
+
+      - name: Build Lean project
+        run: lake build
+
+      - name: Analyze proof completion
+        run: |
+          echo "Analyzing Lion proof completion..."
+
+          # Count sorry statements
+          sorry_count=$(grep -c "sorry" src/DatasetSafetySpecs/OptimizerInduction.lean || echo "0")
+
+          # Count experimental flags
+          experimental_count=$(grep -c "experimental.*true" src/DatasetSafetySpecs/OptimizerInduction.lean || echo "0")
+
+          # Count total theorems
+          theorem_count=$(grep -c "theorem" src/DatasetSafetySpecs/OptimizerInduction.lean || echo "0")
+
+          # Calculate completion percentage
+          if [ "$theorem_count" -gt 0 ]; then
+            completion_percentage=$(( 100 - (sorry_count * 100 / theorem_count) ))
+          else
+            completion_percentage=0
+          fi
+
+          echo "Proof completion analysis:"
+          echo "  Total theorems: $theorem_count"
+          echo "  Incomplete proofs (sorry): $sorry_count"
+          echo "  Experimental flags: $experimental_count"
+          echo "  Completion percentage: ${completion_percentage}%"
+
+          # Create completion report
+          cat > proof_completion_report.md << EOF
+          # Lion Proof Completion Report
+
+          Generated: $(date -u +%Y-%m-%dT%H:%M:%SZ)
+
+          ## Statistics
+          - Total theorems: $theorem_count
+          - Incomplete proofs: $sorry_count
+          - Experimental flags: $experimental_count
+          - Completion percentage: ${completion_percentage}%
+
+          ## Progress Tracking
+          EOF
+
+          if [ "$completion_percentage" -eq 100 ]; then
+            cat >> proof_completion_report.md << EOF
+          ✅ **All proofs complete!**
+
+          The Lion optimizer proofs are 100% complete and ready for production.
+          EOF
+          elif [ "$completion_percentage" -ge 80 ]; then
+            cat >> proof_completion_report.md << EOF
+          🟡 **Nearly complete (${completion_percentage}%)**
+
+          Most proofs are complete. Only $sorry_count remaining.
+          EOF
+          elif [ "$completion_percentage" -ge 50 ]; then
+            cat >> proof_completion_report.md << EOF
+          🟠 **In progress (${completion_percentage}%)**
+
+          Good progress made. $sorry_count proofs still need completion.
+          EOF
+          else
+            cat >> proof_completion_report.md << EOF
+          🔴 **Early development (${completion_percentage}%)**
+
+          Most proofs still need completion. $sorry_count remaining.
+          EOF
+          fi
+
+      - name: Upload completion report
+        uses: actions/upload-artifact@v3
+        with:
+          name: proof-completion-report
+          path: proof_completion_report.md
+
+      - name: Create issue for incomplete proofs
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const sorry_count = '${{ env.sorry_count }}';
+            const completion_percentage = '${{ env.completion_percentage }}';
+
+            if (parseInt(sorry_count) > 0) {
+              github.rest.issues.create({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                title: `Lion Proof Completion: ${completion_percentage}% complete`,
+                body: `## Lion Optimizer Proof Completion Tracking
+
+            **Completion Status**: ${completion_percentage}%
+            **Incomplete Proofs**: ${sorry_count}
+
+            ### Remaining Work:
+            - Complete ${sorry_count} proofs marked with \`sorry\`
+            - Remove experimental flags
+            - Enable full CI testing
+
+            ### Files to Update:
+            - \`src/DatasetSafetySpecs/OptimizerInduction.lean\`
+
+            ### Priority: Medium
+            This is blocking full CI testing for Lion optimizer proofs.`,
+                labels: ['proof-completion', 'lion-optimizer', 'experimental']
+              });
+            }

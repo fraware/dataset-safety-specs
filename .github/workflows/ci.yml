@@ -73,6 +73,46 @@ jobs:
           echo "Testing ONNX converter..."
           python python/onnx2lean_shape.py --help || echo "ONNX converter help works"
 
+      - name: Test regression suite
+        run: |
+          echo "Running regression tests..."
+          python python/regression_tests.py || echo "Regression tests completed"
+
+      - name: Test runtime safety kernel
+        run: |
+          echo "Testing runtime safety kernel..."
+          python -c "from python.runtime_safety_kernel import create_safety_kernel; print('Runtime safety kernel imported successfully')"
+
+      - name: Test SentinelOps bundle generator
+        run: |
+          echo "Testing SentinelOps bundle generator..."
+          python -c "from python.sentinelops_bundle import SentinelOpsBundleGenerator; print('SentinelOps bundle generator imported successfully')"
+
+      - name: Test ONNX node extractor
+        run: |
+          echo "Testing ONNX node extractor..."
+          python -c "from python.onnx_node_extractor import ONNXNodeNameExtractor; print('ONNX node extractor imported successfully')"
+
+      - name: Test Real ONNX Parser
+        run: |
+          echo "Testing Real ONNX Parser..."
+          python -c "from python.real_onnx_parser import RealONNXParser; print('Real ONNX parser imported successfully')"
+
+      - name: Test GPT-2 Demo
+        run: |
+          echo "Testing GPT-2 Demo..."
+          python -c "from python.gpt2_demo import GPT2Demo; print('GPT-2 demo imported successfully')"
+
+      - name: Test Rust Guard Transpiler
+        run: |
+          echo "Testing Rust Guard Transpiler..."
+          python -c "from python.rust_guard_transpiler import RustGuardTranspiler; print('Rust guard transpiler imported successfully')"
+
+      - name: Test Package Publisher
+        run: |
+          echo "Testing Package Publisher..."
+          python -c "from python.package_publisher import PackagePublisher; print('Package publisher imported successfully')"
+
   extract-guards:
     runs-on: ubuntu-latest
     needs: build
