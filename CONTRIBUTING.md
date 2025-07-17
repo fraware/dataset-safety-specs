@@ -68,7 +68,6 @@ dataset-safety-specs/
 ├── extracted/                       # Generated guards
 │   ├── rust/                        # Rust guards
 │   └── python/                      # Python guards
-├── examples/                        # Example notebooks
 ├── docs/                           # Documentation
 └── .github/                        # GitHub workflows and templates
 ```
@@ -276,7 +275,6 @@ We use semantic versioning (MAJOR.MINOR.PATCH):
 ### Resources
 
 - **Documentation**: Check the docs/ directory
-- **Examples**: See examples/ for usage examples
 - **Issues**: Search existing issues for solutions
 - **Discussions**: Use GitHub Discussions for questions
 
