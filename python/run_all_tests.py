@@ -44,16 +44,16 @@ def run_test(
         duration = end_time - start_time
 
         if result:
-            print(f"✅ {test_name}: PASSED ({duration:.2f}s)")
+            print(f"{test_name}: PASSED ({duration:.2f}s)")
             return True, "PASSED", duration
         else:
-            print(f"❌ {test_name}: FAILED ({duration:.2f}s)")
+            print(f" {test_name}: FAILED ({duration:.2f}s)")
             return False, "FAILED", duration
 
     except Exception as e:
         end_time = time.time()
         duration = end_time - start_time
-        print(f"❌ {test_name}: ERROR ({duration:.2f}s)")
+        print(f" {test_name}: ERROR ({duration:.2f}s)")
         print(f"   Error: {e}")
         return False, f"ERROR: {str(e)}", duration
 
@@ -369,7 +369,7 @@ def main():
     total = len(results)
 
     for result in results:
-        status_icon = "✅" if result["success"] else "❌"
+        status_icon = "" if result["success"] else ""
         print(
             f"{status_icon} {result['name']:25} : {result['status']:15} ({result['duration']:.2f}s)"
         )
@@ -387,7 +387,7 @@ def main():
         print("⚠️  Good progress, but some tests need attention.")
         return 1
     else:
-        print("❌ Many tests failed. Please review and fix issues.")
+        print(" Many tests failed. Please review and fix issues.")
         return 1
 
 
