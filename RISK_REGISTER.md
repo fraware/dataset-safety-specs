@@ -37,7 +37,7 @@ This document tracks identified risks, mitigation strategies, and associated TOD
 
 **Status**: OPEN  
 **Assigned**: TBD  
-**Due Date**: 2024-Q2
+**Due Date**: 2025-Q3
 
 #### RISK-002: Edge-Case PHI Detection
 
@@ -74,7 +74,7 @@ This document tracks identified risks, mitigation strategies, and associated TOD
 
 **Status**: OPEN  
 **Assigned**: TBD  
-**Due Date**: 2024-Q1
+**Due Date**: 2025-Q3
 
 #### RISK-003: ETL Throughput Performance
 
@@ -110,7 +110,7 @@ This document tracks identified risks, mitigation strategies, and associated TOD
 
 **Status**: OPEN  
 **Assigned**: TBD  
-**Due Date**: 2024-Q2
+**Due Date**: 2025-Q3
 
 ### 2. Compliance Risks
 
@@ -148,7 +148,7 @@ This document tracks identified risks, mitigation strategies, and associated TOD
 
 **Status**: OPEN  
 **Assigned**: TBD  
-**Due Date**: 2024-Q3
+**Due Date**: 2025-Q3
 
 #### RISK-005: Audit Trail Completeness
 
@@ -184,7 +184,7 @@ This document tracks identified risks, mitigation strategies, and associated TOD
 
 **Status**: OPEN  
 **Assigned**: TBD  
-**Due Date**: 2024-Q1
+**Due Date**: 2025-Q3
 
 ### 3. Integration Risks
 
@@ -222,7 +222,7 @@ This document tracks identified risks, mitigation strategies, and associated TOD
 
 **Status**: OPEN  
 **Assigned**: TBD  
-**Due Date**: 2024-Q2
+**Due Date**: 2025-Q3
 
 #### RISK-007: SentinelOps Schema Compliance
 
@@ -259,7 +259,7 @@ This document tracks identified risks, mitigation strategies, and associated TOD
 
 **Status**: OPEN  
 **Assigned**: TBD  
-**Due Date**: 2024-Q1
+**Due Date**: 2025-Q3
 
 ### 4. DeepSeek Touch-points
 
@@ -293,7 +293,7 @@ This document tracks identified risks, mitigation strategies, and associated TOD
 
 **Status**: OPEN  
 **Assigned**: TBD  
-**Due Date**: 2024-Q3
+**Due Date**: 2025-Q3
 
 #### RISK-009: Public ONNX Node Name Extraction
 
@@ -325,7 +325,7 @@ This document tracks identified risks, mitigation strategies, and associated TOD
 
 **Status**: OPEN  
 **Assigned**: TBD  
-**Due Date**: 2024-Q2
+**Due Date**: 2025-Q3
 
 #### RISK-010: Lion Proof Gating in CI
 
@@ -357,7 +357,7 @@ This document tracks identified risks, mitigation strategies, and associated TOD
 
 **Status**: OPEN  
 **Assigned**: TBD  
-**Due Date**: 2024-Q1
+**Due Date**: 2025-Q3
 
 ## Risk Monitoring
 
@@ -431,25 +431,26 @@ This document tracks identified risks, mitigation strategies, and associated TOD
 
 ## Next Steps
 
-1. **Immediate (Next 2 weeks)**:
+1. **Immediate**:
 
    - Assign owners to critical and high risks
    - Begin work on RISK-002 (Edge-Case PHI Detection)
    - Start RISK-005 (Audit Trail Completeness)
 
-2. **Short-term (Next month)**:
+2. **Short-term**:
 
    - Complete RISK-007 (SentinelOps Schema Compliance)
    - Begin RISK-010 (Lion Proof Gating in CI)
    - Start RISK-003 (ETL Throughput Performance)
 
-3. **Medium-term (Next quarter)**:
+3. **Medium-term**:
 
    - Complete RISK-001 (Dynamic Shape Support)
    - Finish RISK-006 (Runtime Safety Kernel Integration)
    - Begin RISK-008 (Hard Induction Sub-lemmas)
 
-4. **Long-term (Next 6 months)**:
+4. **Long-term**:
+
    - Complete all remaining risks
    - Establish ongoing risk monitoring
    - Implement compliance SME network

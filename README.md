@@ -16,8 +16,7 @@ Formal verification framework for dataset lineage, policy compliance, and traini
 
 ```bash
 # Clone the repository
-git clone https://github.com/your-org/dataset-safety-specs.git
-cd dataset-safety-specs
+git clone https://github.com/fraware/dataset-safety-specs
 
 # Install dependencies
 pip install -r requirements.txt
@@ -127,17 +126,7 @@ lake exe extract_guard
 from ds_guard import phi_guard, coppa_guard
 ```
 
-## Examples
-
-### PHI Masking Demo
-
-See `examples/mask_phi.ipynb` for a complete demo of PHI detection and masking.
-
-### GPT-2 Shape Verification
-
-See `examples/verify_shapes_gpt2.ipynb` for GPT-2 (124M) shape verification.
-
-## New Components (2024)
+## New Components
 
 ### Regression Testing Suite
 

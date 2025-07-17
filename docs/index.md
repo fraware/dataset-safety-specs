@@ -18,8 +18,7 @@ The Dataset Safety Specifications (DSS) framework provides formal verification f
 
 ```bash
 # Clone the repository
-git clone https://github.com/your-org/dataset-safety-specs.git
-cd dataset-safety-specs
+git clone https://github.com/fraware/dataset-safety-specs
 
 # Install dependencies
 pip install -r requirements.txt
