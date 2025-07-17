@@ -1,1 +1,44 @@
-test_pytorch_model.pth
+# -----------------------
+# Model weights & data
+# -----------------------
+# Raw PyTorch weights
+*.pth
+*.pt
+
+# Other large snapshots/events
+*.pt
+*.pth
+
+# -----------------------
+# Build artifacts
+# -----------------------
+# Lean Lake build folder
+.lake/
+
+# Generated Lake files
+*.olean
+*.ilean
+*.trace
+*.lock
+
+# Any other local artifact dirs
+artifacts/
+
+# -----------------------
+# Python
+# -----------------------
+# Bytecode
+__pycache__/
+*.py[cod]
+
+# -----------------------
+# IDE / Editor
+# -----------------------
+.vscode/
+.idea/
+
+# -----------------------
+# OS files
+# -----------------------
+.DS_Store
+Thumbs.db
