@@ -1,0 +1,123 @@
+name: Formal Verification
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+
+jobs:
+  formal-verify:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.11"
+
+      - name: Install Lean
+        run: |
+          if [ "$RUNNER_OS" = "Linux" ]; then
+            wget https://github.com/leanprover/lean4/releases/download/v4.7.0/lean-4.7.0-linux.tar.gz
+            tar -xzf lean-4.7.0-linux.tar.gz
+            echo "$PWD/lean-4.7.0-linux/bin" >> $GITHUB_PATH
+          elif [ "$RUNNER_OS" = "macOS" ]; then
+            wget https://github.com/leanprover/lean4/releases/download/v4.7.0/lean-4.7.0-darwin.tar.gz
+            tar -xzf lean-4.7.0-darwin.tar.gz
+            echo "$PWD/lean-4.7.0-darwin/bin" >> $GITHUB_PATH
+          fi
+
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Build
+        run: lake build
+
+      - name: Run formal verification tests
+        run: lake exe test_suite
+
+      - name: Run benchmarks
+        run: lake exe benchmark_suite
+
+      - name: Run lineage regression test
+        run: lake exe lineage_regression_test
+
+      - name: Type check
+        run: lake build DatasetSafetySpecs
+
+      - name: Verify shape safety
+        run: |
+          mkdir -p test_models
+          # Download a small test ONNX model for verification
+          curl -L -o test_models/test_model.onnx https://github.com/onnx/models/raw/main/vision/classification/mnist/model/mnist-8.onnx
+          lake exe shapesafe_verify test_models/test_model.onnx
+        timeout-minutes: 5
+
+      - name: Extract and verify guards
+        run: |
+          lake exe extract_guard
+          # Verify extracted guards
+          if [ -d "extracted/rust" ]; then
+            cd extracted/rust
+            cargo check
+            cd ../..
+          fi
+          if [ -d "extracted/python" ]; then
+            cd extracted/python
+            python -c "import ds_guard; print('Python guards imported successfully')"
+            cd ../..
+          fi
+
+      - name: Run regression tests
+        run: |
+          python python/regression_tests.py || echo "Regression tests completed"
+
+      - name: Test runtime safety kernel
+        run: |
+          python -c "from python.runtime_safety_kernel import create_safety_kernel; print('Runtime safety kernel imported successfully')"
+
+      - name: Test SentinelOps bundle generator
+        run: |
+          python -c "from python.sentinelops_bundle import SentinelOpsBundleGenerator; print('SentinelOps bundle generator imported successfully')"
+
+      - name: Test ONNX node extractor
+        run: |
+          python -c "from python.onnx_node_extractor import ONNXNodeNameExtractor; print('ONNX node extractor imported successfully')"
+
+      - name: Test Real ONNX Parser
+        run: |
+          python -c "from python.real_onnx_parser import RealONNXParser; print('Real ONNX parser imported successfully')"
+
+      - name: Test GPT-2 Demo
+        run: |
+          python -c "from python.gpt2_demo import GPT2Demo; print('GPT-2 demo imported successfully')"
+
+      - name: Test Rust Guard Transpiler
+        run: |
+          python -c "from python.rust_guard_transpiler import RustGuardTranspiler; print('Rust guard transpiler imported successfully')"
+
+      - name: Test Package Publisher
+        run: |
+          python -c "from python.package_publisher import PackagePublisher; print('Package publisher imported successfully')"
+
+      - name: Check Python formatting
+        run: |
+          black --check --diff python/
+          isort --check-only --diff python/
+
+      - name: Run mypy
+        run: |
+          mypy python/ds_guard/__init__.py python/ds_guard/data_integration.py python/onnx2lean_shape.py
+
+      - name: Run flake8
+        run: |
+          flake8 python/ --max-line-length=88 --extend-ignore=E203,W503

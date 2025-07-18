@@ -148,19 +148,8 @@ EOF
     echo -e "${GREEN}✓ Complete bundle created${NC}"
 }
 
-# Function to publish to PyPI (stub)
-publish_to_pypi() {
-    echo "Publishing to PyPI..."
-    echo -e "${YELLOW}Note: PyPI publishing not yet implemented${NC}"
-    echo "Would upload Python wheel to PyPI"
-}
-
-# Function to publish to crates.io (stub)
-publish_to_crates() {
-    echo "Publishing to crates.io..."
-    echo -e "${YELLOW}Note: crates.io publishing not yet implemented${NC}"
-    echo "Would upload Rust crate to crates.io"
-}
+# Publishing is now handled by GitHub Actions workflow
+# See .github/workflows/bundle-push.yml for OCI registry publishing
 
 # Function to create SentinelOps compliance bundle
 create_sentinelops_bundle() {
@@ -247,9 +236,8 @@ main() {
             create_rust_crate
             ;;
         "publish")
-            echo "Publishing packages..."
-            publish_to_pypi
-            publish_to_crates
+            echo "Publishing is now handled by GitHub Actions workflow"
+            echo "See .github/workflows/bundle-push.yml for OCI registry publishing"
             ;;
         "clean")
             echo "Cleaning bundle directory..."
@@ -264,7 +252,7 @@ main() {
             echo "  lean    - Create Lean specification bundle only"
             echo "  python  - Create Python wheel only"
             echo "  rust    - Create Rust crate only"
-            echo "  publish - Publish to PyPI and crates.io (stub)"
+            echo "  publish - Publishing handled by GitHub Actions (OCI registry)"
             echo "  clean   - Clean bundle directory"
             exit 1
             ;;
