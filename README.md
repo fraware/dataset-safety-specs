@@ -16,7 +16,7 @@ Formal verification framework for dataset lineage, policy compliance, and traini
 
 ```bash
 # Clone the repository
-git clone https://github.com/fraware/dataset-safety-specs
+git clone https://github.com/SentinelOps-Remote-CI/dataset-safety-specs.git
 
 # Install dependencies
 pip install -r requirements.txt
